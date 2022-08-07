@@ -7,8 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/1qaoTfIxbNlaqne5y8wtIzA-ySkCMbzGA
 """
 
-from google.colab import drive 
-drive.mount('/content/gdrive')
 
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
@@ -26,11 +24,11 @@ THRESHOLD = 0.875
 
 def clean_beer_reviews():
   # storing beer review dataset
-  beer_reviews = pd.read_csv("gdrive/MyDrive/Recommender System/beer_reviews.csv", encoding="utf-8")
+  beer_reviews = pd.read_csv("beer_reviews.csv")
   # creating a unique identifier for each beer using brewery name and beer name
   beer_reviews['Unique Beer Name'] = beer_reviews['brewery_name'] + ' ' + beer_reviews['beer_name']
   # storing beer profile dataset
-  beer_profile = pd.read_csv("gdrive/MyDrive/Recommender System/beer_profile_and_ratings.csv", encoding="utf-8")
+  beer_profile = pd.read_csv("beer_profile_ratings.csv", error_bad_lines=False)
   # columns to drop from beer reviews
   drop_cols = ['brewery_id', 'brewery_name',  'beer_name', 'beer_abv', 'beer_beerid']
   # dropping columns from beer reviews
@@ -224,7 +222,7 @@ def node2vec(buckets, shared_attributes, beer, n_recs):
              'review_appearance', 'review_palate', 'review_taste', 'review_overall', 
              'number_of_reviews', 'ABV', 'Salty']
   # Loading in the beer profile dataset
-  beer_profile = pd.read_csv("gdrive/MyDrive/Recommender System/beer_profile_and_ratings.csv", encoding="utf-8")
+  beer_profile = pd.read_csv("beer_profile_ratings.csv", error_bad_lines=False)
   bp = beer_profile.drop(columns = drop_cols)
   # Bucketing the traits of each beer to measure similarity
   new_bp = bucket_me(buckets, bp.set_index('Beer Name (Full)'))
