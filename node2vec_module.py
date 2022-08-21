@@ -17,6 +17,7 @@ import statistics as stats
 import math
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
+import networkx as nx
 
 THRESHOLD = 0.875
 
@@ -222,7 +223,7 @@ def node2vec(buckets, shared_attributes, beer, n_recs):
              'review_appearance', 'review_palate', 'review_taste', 'review_overall', 
              'number_of_reviews', 'ABV', 'Salty']
   # Loading in the beer profile dataset
-  beer_profile = pd.read_csv("beer_profile_ratings.csv", error_bad_lines=False)
+  beer_profile = pd.read_csv("beer_profile_and_ratings.csv", error_bad_lines=False)
   bp = beer_profile.drop(columns = drop_cols)
   # Bucketing the traits of each beer to measure similarity
   new_bp = bucket_me(buckets, bp.set_index('Beer Name (Full)'))
@@ -239,7 +240,7 @@ def node2vec(buckets, shared_attributes, beer, n_recs):
                        index = g.nodes))
   return predict_links(g, emb_df, beer, n_recs)
 
-node2vec(4, 7, 'Alaskan Brewing Co. Alaskan Amber', 10)
+# node2vec(4, 7, 'Alaskan Brewing Co. Alaskan Amber', 10)
 
 """calcscore, df, test_parameters
 
