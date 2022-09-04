@@ -18,6 +18,8 @@ import math
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import networkx as nx
+import node2vec
+from node2vec import Node2Vec as n2v
 
 THRESHOLD = 0.875
 
