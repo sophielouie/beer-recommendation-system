@@ -20,6 +20,7 @@ import networkx as nx
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 from node2vec import Node2Vec
+import copy
 
 
 
@@ -136,9 +137,10 @@ THRESHOLD = 0.875
 def create_train_test_split(df, test_users, frac_rem=1):
     #frac_rem: fraction of each user in test set to remain in train set
     # train_set is copy of df --> df has review_profilename and Unique Beer Name as indicies
-    # we are preserving user information by reseting indicies, so when we .loc[] we still have access to user and beer info
-    return(df)
-    train_set = df.copy().reset_index()
+    # we are preserving user information by reseting indicies, so when we
+    # .loc[] we still have access to user and beer info
+    train_set = copy.copy(df)
+    train_set = train_set.reset_index()
     test_parameters = []
     test_set = pd.DataFrame(columns = train_set.columns)
 
@@ -202,7 +204,7 @@ def hybrid_model(user, beer, n_recs, test_frac = 1):
     freq_reviews.rename(columns={'review_time': 'Number of Reviews'}, inplace = True)
     test_users = freq_reviews.index[:10]
     # Divying up the training and test sets
-    train_set, test_set, test_parameters = create_train_test_split(test_frac, df, test_users)
+    train_set, test_set, test_parameters = create_train_test_split(df, test_users, test_frac)
     # Train the SVD model
     svd = train_svd(train_set, test_set)
     # Resetting the index to cooperate with hybrid function
