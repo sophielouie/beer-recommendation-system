@@ -137,6 +137,7 @@ def create_train_test_split(df, test_users, frac_rem=1):
     #frac_rem: fraction of each user in test set to remain in train set
     # train_set is copy of df --> df has review_profilename and Unique Beer Name as indicies
     # we are preserving user information by reseting indicies, so when we .loc[] we still have access to user and beer info
+    return(df)
     train_set = df.copy().reset_index()
     test_parameters = []
     test_set = pd.DataFrame(columns = train_set.columns)
