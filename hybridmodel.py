@@ -86,9 +86,9 @@ def hybrid(user, beer, n_recs, df, svd_model):
     for beer_name in df["Beer Name"].unique():
         beer_vectors = df.loc[df["Beer Name"] == beer_name][values]
         cos_sim = list()
-    for beer_vector in np.array(beer_vectors):
-        cos_sim.append(1 - spatial.distance.cosine(beer_vector, target_beer_vector))
-    similar.append((beer_name, stats.mean(cos_sim)))
+        for beer_vector in np.array(beer_vectors):
+            cos_sim.append(1 - spatial.distance.cosine(beer_vector, target_beer_vector))
+        similar.append((beer_name, stats.mean(cos_sim)))
 
     # sort in decreasing order
     similar = sorted(similar, key = lambda x: x[1], reverse = True)

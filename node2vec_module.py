@@ -31,7 +31,7 @@ def clean_beer_reviews():
   # creating a unique identifier for each beer using brewery name and beer name
   beer_reviews['Unique Beer Name'] = beer_reviews['brewery_name'] + ' ' + beer_reviews['beer_name']
   # storing beer profile dataset
-  beer_profile = pd.read_csv("beer_profile_ratings.csv", error_bad_lines=False)
+  beer_profile = pd.read_csv("beer_profile_and_ratings.csv", error_bad_lines=False)
   # columns to drop from beer reviews
   drop_cols = ['brewery_id', 'brewery_name',  'beer_name', 'beer_abv', 'beer_beerid']
   # dropping columns from beer reviews
