@@ -199,16 +199,9 @@ def hybrid_model(user, beer, n_recs, test_frac = 1):
     df = clean_beer_reviews()
     # Setting the index for easier querying
     df.set_index(['review_profilename', 'Unique Beer Name'], inplace = True)
-    # Identifying the top 10 most frequent reviewers
-    freq_reviews = df.groupby('review_profilename').count().sort_values(by=['review_time'], ascending = False)
-    freq_reviews.rename(columns={'review_time': 'Number of Reviews'}, inplace = True)
-    test_users = freq_reviews.index[:10]
-    # Divying up the training and test sets
-    train_set, test_set, test_parameters = create_train_test_split(df, test_users, test_frac)
-    # Train the SVD model
-    svd = train_svd(train_set, test_set)
-    # Resetting the index to cooperate with hybrid function
-    train_set.set_index(["review_profilename", "Unique Beer Name"], inplace = True)
+    # Load svd pkl file
+    filehandler = open('svd.pkl', 'rb') 
+    svd = pickle.load(filehandler)
     return hybrid(user, beer, n_recs, train_set, svd)
 
 

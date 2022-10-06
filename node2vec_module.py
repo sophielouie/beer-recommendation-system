@@ -26,39 +26,39 @@ THRESHOLD = 0.875
 """# Data Collection"""
 
 def clean_beer_reviews():
-  # storing beer review dataset
-  beer_reviews = pd.read_csv("beer_reviews.csv")
-  # creating a unique identifier for each beer using brewery name and beer name
-  beer_reviews['Unique Beer Name'] = beer_reviews['brewery_name'] + ' ' + beer_reviews['beer_name']
-  # storing beer profile dataset
-  beer_profile = pd.read_csv("beer_profile_and_ratings.csv", error_bad_lines=False)
-  # columns to drop from beer reviews
-  drop_cols = ['brewery_id', 'brewery_name',  'beer_name', 'beer_abv', 'beer_beerid']
-  # dropping columns from beer reviews
-  beer_reviews.drop(columns = drop_cols, inplace = True)
-  # columns to drop from  beer profile
-  drop_cols = ['Name', 'Style', 'Brewery', 'Description',
+    # storing beer review dataset
+    beer_reviews = pd.read_csv("beer_reviews.csv")
+    # creating a unique identifier for each beer using brewery name and beer name
+    beer_reviews['Unique Beer Name'] = beer_reviews['brewery_name'] + ' ' + beer_reviews['beer_name']
+    # storing beer profile dataset
+    beer_profile = pd.read_csv("beer_profile_and_ratings.csv", error_bad_lines=False)
+    # columns to drop from beer reviews
+    drop_cols = ['brewery_id', 'brewery_name',  'beer_name', 'beer_abv', 'beer_beerid']
+    # dropping columns from beer reviews
+    beer_reviews.drop(columns = drop_cols, inplace = True)
+    # columns to drop from  beer profile
+    drop_cols = ['Name', 'Style', 'Brewery', 'Description',
        'Min IBU', 'Max IBU', 'Alcohol', 'review_aroma', 'review_appearance', 'review_palate', 'review_taste',
        'review_overall', 'number_of_reviews']
-  # dropping columns from beer profile
-  beer_profile.drop(columns = drop_cols, inplace = True)
-  # combining beer review and beer profile datasets to have profile of each beer attached to every review
-  df_beer = pd.merge(beer_reviews, beer_profile, left_on = 'Unique Beer Name', right_on = 'Beer Name (Full)', how = 'inner')
-  # isolating the numerical columns that need to be scaled
-  need_scaling = df_beer.drop(columns = ['review_time', 'review_profilename', 'beer_style', 'Unique Beer Name', 'Beer Name (Full)'])
-  # storing the informational portion of the dataset that does not need scaling
-  informational = df_beer[['review_time', 'review_profilename', 'beer_style', 'Unique Beer Name', 'Beer Name (Full)']]
-  # renaming beer name column
-  informational.rename(columns = {'Beer Name (Full)': 'Beer Name'}, inplace = True)
+    # dropping columns from beer profile
+    beer_profile.drop(columns = drop_cols, inplace = True)
+    # combining beer review and beer profile datasets to have profile of each beer attached to every review
+    df_beer = pd.merge(beer_reviews, beer_profile, left_on = 'Unique Beer Name', right_on = 'Beer Name (Full)', how = 'inner')
+    # isolating the numerical columns that need to be scaled
+    need_scaling = df_beer.drop(columns = ['review_time', 'review_profilename', 'beer_style', 'Unique Beer Name', 'Beer Name (Full)'])
+    # storing the informational portion of the dataset that does not need scaling
+    informational = df_beer[['review_time', 'review_profilename', 'beer_style', 'Unique Beer Name', 'Beer Name (Full)']]
+    # renaming beer name column
+    informational.rename(columns = {'Beer Name (Full)': 'Beer Name'}, inplace = True)
 
-  # scaling the data
-  scaler = MinMaxScaler()
-  scaler.fit(need_scaling)
-  need_scaling = pd.DataFrame(scaler.transform(need_scaling), columns = need_scaling.columns)
+    # scaling the data
+    scaler = MinMaxScaler()
+    scaler.fit(need_scaling)
+    need_scaling = pd.DataFrame(scaler.transform(need_scaling), columns = need_scaling.columns)
 
-  # recombining the informational data and scaled data
-  df = pd.concat([informational, need_scaling], axis = 1)
-  return df
+    # recombining the informational data and scaled data
+    df = pd.concat([informational, need_scaling], axis = 1)
+    return df
 
 """#Defining Parameters before Testing
 
@@ -82,33 +82,33 @@ We need to select users to isolate for our test set. The criteria for these user
 """
 
 def create_train_test_split(frac_rem=1):
-  #frac_rem: fraction of each user in test set to remain in train set
-  # train_set is copy of df --> df has review_profilename and Unique Beer Name as indicies
-  # we are preserving user information by reseting indicies, so when we .loc[] we still have access to user and beer info
-  train_set = df.copy().reset_index()
-  test_parameters = []
-  test_set = pd.DataFrame(columns = train_set.columns)
+    #frac_rem: fraction of each user in test set to remain in train set
+    # train_set is copy of df --> df has review_profilename and Unique Beer Name as indicies
+    # we are preserving user information by reseting indicies, so when we .loc[] we still have access to user and beer info
+    train_set = df.copy().reset_index()
+    test_parameters = []
+    test_set = pd.DataFrame(columns = train_set.columns)
 
 
-  for user in test_users: 
-    # all reviews for a the test user
-    user_reviews = train_set.loc[train_set.review_profilename == user]
+    for user in test_users: 
+        # all reviews for a the test user
+        user_reviews = train_set.loc[train_set.review_profilename == user]
 
-    # sorted reviews
-    user_reviews = user_reviews.sort_values(by = 'review_overall', ascending = False)
+        # sorted reviews
+        user_reviews = user_reviews.sort_values(by = 'review_overall', ascending = False)
 
-    # store highest reviewed beer
-    highest_reviewed_beer = user_reviews.iloc[0]
-    test_parameters.append((user, highest_reviewed_beer["Beer Name"]))
+        # store highest reviewed beer
+        highest_reviewed_beer = user_reviews.iloc[0]
+        test_parameters.append((user, highest_reviewed_beer["Beer Name"]))
 
-    # calculating the last index to remove from the train set
-    last_idx = int((len(user_reviews) - 1) * frac_rem)
+        # calculating the last index to remove from the train set
+        last_idx = int((len(user_reviews) - 1) * frac_rem)
 
-    # concatenate the removed user-beer pairs to test set
-    test_set = pd.concat([test_set, user_reviews.iloc[1:last_idx]])
+        # concatenate the removed user-beer pairs to test set
+        test_set = pd.concat([test_set, user_reviews.iloc[1:last_idx]])
 
-    # remove all beers from training set, add back in highest_reviewed_beer
-    train_set.drop(user_reviews.iloc[1:last_idx].index, axis = 0, inplace = True)
+        # remove all beers from training set, add back in highest_reviewed_beer
+        train_set.drop(user_reviews.iloc[1:last_idx].index, axis = 0, inplace = True)
 
   return train_set, test_set, test_parameters
 
