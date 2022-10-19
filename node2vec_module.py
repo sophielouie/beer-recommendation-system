@@ -110,7 +110,7 @@ def create_train_test_split(frac_rem=1):
         # remove all beers from training set, add back in highest_reviewed_beer
         train_set.drop(user_reviews.iloc[1:last_idx].index, axis = 0, inplace = True)
 
-  return train_set, test_set, test_parameters
+    return train_set, test_set, test_parameters
 
 def calc_score(metric, rec_dict, n_recs, test):
   # test is a dataframe consisting of the user reviews to be used to determine relevancy
@@ -203,44 +203,37 @@ def beer_comparer(comp_list, beer_list, shared_att):
 
 
 def predict_links(g, df, beer_name, num_rec):
-  #dataframe with just row of given beer name
-  this_beer = df[df.index == beer_name]
+    #dataframe with just row of given beer name
+    this_beer = df[df.index == beer_name]
 
-  #getting beers which are not already linked to the given beer
-  all_nodes = g.nodes()
-  all_other_nodes = [n for n in all_nodes if n not in list(g.adj[beer_name]) + [beer_name]]
-  other_nodes = df[df.index.isin(all_other_nodes)]
-  #find the cosine similarity between the given beer and all beers that are not already neighbors
-  similar = dict()
-  for beer in other_nodes.iterrows():
-    similar[beer[0]] = (1 - spatial.distance.cosine(beer[1], np.array(this_beer)))
-  #sort the dictionary by highest cosine similarity
-  similar = pd.DataFrame(similar.items(), columns = ['beer', 'cos sim'])
-  sorted_sim = similar.sort_values(by = 'cos sim', ascending = False)
-  return sorted_sim['beer'].iloc[0:num_rec]
+    #getting beers which are not already linked to the given beer
+    all_nodes = g.nodes()
+    #list of all beer names that are not adjacent to the beer
+    all_other_nodes = [n for n in all_nodes if n not in list(g.adj[beer_name]) + [beer_name]]
+    #DataFrame that contains non-adjacent nodes
+    other_nodes = df[df.index.isin(all_other_nodes)]
+    #find the cosine similarity between the given beer and all beers that are not already neighbors
+    similar = dict()
+    for beer in other_nodes.iterrows():
+        similar[beer[0]] = (1 - spatial.distance.cosine(beer[1], np.array(this_beer)))
+    #sort the dictionary by highest cosine similarity
+    similar = pd.DataFrame(similar.items(), columns = ['beer', 'cos sim'])
+    sorted_sim = similar.sort_values(by = 'cos sim', ascending = False)
+    return sorted_sim['beer'].iloc[0:num_rec]
 
-def node2vec(buckets, shared_attributes, beer, n_recs):
-  # Unnecessary columns in beer profile dataset
-  drop_cols = ['Name', 'Brewery', 'Description', 'Min IBU', 'Max IBU', 'Alcohol', 'review_aroma', 
-             'review_appearance', 'review_palate', 'review_taste', 'review_overall', 
-             'number_of_reviews', 'ABV', 'Salty']
-  # Loading in the beer profile dataset
-  beer_profile = pd.read_csv("beer_profile_and_ratings.csv", error_bad_lines=False)
-  bp = beer_profile.drop(columns = drop_cols)
-  # Bucketing the traits of each beer to measure similarity
-  new_bp = bucket_me(buckets, bp.set_index('Beer Name (Full)'))
-  # Make buckets column of strings
-  new_bp["buckets"] = new_bp.apply(lambda x: ','.join(x.astype(str)), axis=1)
-  # Turn buckets into list
-  new_bp["buckets"] = new_bp["buckets"].apply(str_to_list)
-  # generating network based on threshold for shared attributes
-  g = generate_network(new_bp, shared_att = shared_attributes)
-  # creating matrix used for predicting new links
-  embedding = n2v(g, dimensions = 16)
-  model = embedding.fit(window = 1, min_count = 1, batch_words = 4)
-  emb_df = (pd.DataFrame([model.wv.get_vector(str(n)) for n in g.nodes()],
-                       index = g.nodes))
-  return predict_links(g, emb_df, beer, n_recs)
+def node2vec(beer, n_recs):
+    import pickle
+    
+    
+    # Loading in pkl file storing graph
+    filehandler = open('beer_network.pkl', 'rb') 
+    g = pickle.load(filehandler)
+    # Reading in the embedding dataframe
+    emb_df = pd.read_csv('embedding_df.csv')
+    # Set embedding index to beer names
+    emb_df.set_index(['Unnamed: 0'], inplace=True)
+    
+    return predict_links(g, emb_df, beer, n_recs)
 
 # node2vec(4, 7, 'Alaskan Brewing Co. Alaskan Amber', 10)
 

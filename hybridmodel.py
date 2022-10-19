@@ -21,6 +21,7 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 from node2vec import Node2Vec
 import copy
+import pickle
 
 
 
@@ -202,7 +203,7 @@ def hybrid_model(user, beer, n_recs, test_frac = 1):
     # Load svd pkl file
     filehandler = open('svd.pkl', 'rb') 
     svd = pickle.load(filehandler)
-    return hybrid(user, beer, n_recs, train_set, svd)
+    return hybrid(user, beer, n_recs, df, svd)
 
 
 
