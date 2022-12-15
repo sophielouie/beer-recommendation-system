@@ -1,5 +1,7 @@
 # beer-recommendation-system
 Beer Recommender System
+
+
 To use our user interface and see what beers we would recommend you follow these steps:
 1. Clone the repository
 2. Open GUI.ipynb
